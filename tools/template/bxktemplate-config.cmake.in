@@ -1,0 +1,9 @@
+@PACKAGE_INIT@
+
+@FIND_PACKAGE@
+
+if (NOT TARGET bxk::@MODULE_NAME@)
+  include("${CMAKE_CURRENT_LIST_DIR}/bxk@MODULE_NAME@-targets.cmake")
+endif()
+
+check_required_components(@MODULE_NAME@)

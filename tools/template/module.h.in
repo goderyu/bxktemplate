@@ -1,0 +1,203 @@
+#pragma once
+
+#include "version.h"
+
+#ifdef _MSVC_LANG
+#define @MODULE_UPPER_NAME@_CPLUSPLUS _MSVC_LANG
+#else
+#define @MODULE_UPPER_NAME@_CPLUSPLUS __cplusplus
+#endif
+
+#ifdef __has_feature
+#define @MODULE_UPPER_NAME@_HAS_FEATURE(x) __has_feature(x)
+#else
+#define @MODULE_UPPER_NAME@_HAS_FEATURE(x) 0
+#endif
+
+#if defined(__has_include) || @MODULE_UPPER_NAME@_ICC_VERSION >= 1600 || \
+    @MODULE_UPPER_NAME@_MSC_VERSION > 1900
+#define @MODULE_UPPER_NAME@_HAS_INCLUDE(x) __has_include(x)
+#else
+#define @MODULE_UPPER_NAME@_HAS_INCLUDE(x) 0
+#endif
+
+#ifdef __has_cpp_attribute
+#define @MODULE_UPPER_NAME@_HAS_CPP_ATTRIBUTE(x) __has_cpp_attribute(x)
+#else
+#define @MODULE_UPPER_NAME@_HAS_CPP_ATTRIBUTE(x) 0
+#endif
+
+#define @MODULE_UPPER_NAME@_HAS_CPP14_ATTRIBUTE(attribute) \
+  (@MODULE_UPPER_NAME@_CPLUSPLUS >= 201402L && @MODULE_UPPER_NAME@_HAS_CPP_ATTRIBUTE(attribute))
+
+#define @MODULE_UPPER_NAME@_HAS_CPP17_ATTRIBUTE(attribute) \
+  (@MODULE_UPPER_NAME@_CPLUSPLUS >= 201703L && @MODULE_UPPER_NAME@_HAS_CPP_ATTRIBUTE(attribute))
+
+// Check if relaxed C++14 constexpr is supported.
+// GCC doesn't allow throw in constexpr until version 6 (bug 67371).
+#ifndef @MODULE_UPPER_NAME@_USE_CONSTEXPR
+#if (@MODULE_UPPER_NAME@_HAS_FEATURE(cxx_relaxed_constexpr) ||                   \
+     @MODULE_UPPER_NAME@_MSC_VERSION >= 1912 ||                                  \
+     (@MODULE_UPPER_NAME@_GCC_VERSION >= 600 && @MODULE_UPPER_NAME@_CPLUSPLUS >= 201402L)) && \
+    !@MODULE_UPPER_NAME@_ICC_VERSION && (!defined(__NVCC__) || @MODULE_UPPER_NAME@_CPLUSPLUS >= 202002L)
+#define @MODULE_UPPER_NAME@_USE_CONSTEXPR 1
+#else
+#define @MODULE_UPPER_NAME@_USE_CONSTEXPR 0
+#endif
+#endif
+#if @MODULE_UPPER_NAME@_USE_CONSTEXPR
+#define @MODULE_UPPER_NAME@_CONSTEXPR constexpr
+#else
+#define @MODULE_UPPER_NAME@_CONSTEXPR
+#endif
+
+#if (@MODULE_UPPER_NAME@_CPLUSPLUS >= 202002L ||                                  \
+     (@MODULE_UPPER_NAME@_CPLUSPLUS >= 201709L && @MODULE_UPPER_NAME@_GCC_VERSION >= 1002)) && \
+    ((!defined(_GLIBCXX_RELEASE) || _GLIBCXX_RELEASE >= 10) &&       \
+     (!defined(_LIBCPP_VERSION) || _LIBCPP_VERSION >= 10000) &&      \
+     (!@MODULE_UPPER_NAME@_MSC_VERSION || @MODULE_UPPER_NAME@_MSC_VERSION >= 1928)) &&         \
+    defined(__cpp_lib_is_constant_evaluated)
+#define @MODULE_UPPER_NAME@_CONSTEXPR20 constexpr
+#else
+#define @MODULE_UPPER_NAME@_CONSTEXPR20
+#endif
+
+// Check if constexpr std::char_traits<>::{compare,length} are supported.
+#if defined(__GLIBCXX__)
+#if @MODULE_UPPER_NAME@_CPLUSPLUS >= 201703L && defined(_GLIBCXX_RELEASE) && \
+    _GLIBCXX_RELEASE >= 7  // GCC 7+ libstdc++ has _GLIBCXX_RELEASE.
+#define @MODULE_UPPER_NAME@_CONSTEXPR_CHAR_TRAITS constexpr
+#endif
+#elif defined(_LIBCPP_VERSION) && @MODULE_UPPER_NAME@_CPLUSPLUS >= 201703L && \
+    _LIBCPP_VERSION >= 4000
+#define @MODULE_UPPER_NAME@_CONSTEXPR_CHAR_TRAITS constexpr
+#elif @MODULE_UPPER_NAME@_MSC_VERSION >= 1914 && @MODULE_UPPER_NAME@_CPLUSPLUS >= 201703L
+#define @MODULE_UPPER_NAME@_CONSTEXPR_CHAR_TRAITS constexpr
+#endif
+#ifndef @MODULE_UPPER_NAME@_CONSTEXPR_CHAR_TRAITS
+#define @MODULE_UPPER_NAME@_CONSTEXPR_CHAR_TRAITS
+#endif
+
+// Check if exceptions are disabled.
+#ifndef @MODULE_UPPER_NAME@_EXCEPTIONS
+#if (defined(__GNUC__) && !defined(__EXCEPTIONS)) || \
+    (@MODULE_UPPER_NAME@_MSC_VERSION && !_HAS_EXCEPTIONS)
+#define @MODULE_UPPER_NAME@_EXCEPTIONS 0
+#else
+#define @MODULE_UPPER_NAME@_EXCEPTIONS 1
+#endif
+#endif
+
+// Disable [[noreturn]] on MSVC/NVCC because of bogus unreachable code warnings.
+#if @MODULE_UPPER_NAME@_EXCEPTIONS && @MODULE_UPPER_NAME@_HAS_CPP_ATTRIBUTE(noreturn) && \
+    !@MODULE_UPPER_NAME@_MSC_VERSION && !defined(__NVCC__)
+#define @MODULE_UPPER_NAME@_NORETURN [[noreturn]]
+#else
+#define @MODULE_UPPER_NAME@_NORETURN
+#endif
+
+#ifndef @MODULE_UPPER_NAME@_NODISCARD
+#if @MODULE_UPPER_NAME@_HAS_CPP17_ATTRIBUTE(nodiscard)
+#define @MODULE_UPPER_NAME@_NODISCARD [[nodiscard]]
+#else
+#define @MODULE_UPPER_NAME@_NODISCARD
+#endif
+#endif
+
+#ifndef @MODULE_UPPER_NAME@_INLINE
+#if @MODULE_UPPER_NAME@_GCC_VERSION || @MODULE_UPPER_NAME@_CLANG_VERSION
+#define @MODULE_UPPER_NAME@_INLINE inline __attribute__((always_inline))
+#else
+#define @MODULE_UPPER_NAME@_INLINE inline
+#endif
+#endif
+
+#ifdef _MSC_VER
+#define @MODULE_UPPER_NAME@_UNCHECKED_ITERATOR(It) \
+  using _Unchecked_type = It  // Mark iterator as checked.
+#else
+#define @MODULE_UPPER_NAME@_UNCHECKED_ITERATOR(It) using unchecked_type = It
+#endif
+
+#ifndef @MODULE_UPPER_NAME@_EXPORT
+#define @MODULE_UPPER_NAME@_EXPORT
+#define @MODULE_UPPER_NAME@_BEGIN_EXPORT
+#define @MODULE_UPPER_NAME@_END_EXPORT
+#endif
+
+#if @MODULE_UPPER_NAME@_GCC_VERSION || @MODULE_UPPER_NAME@_CLANG_VERSION
+#define @MODULE_UPPER_NAME@_VISIBILITY(value) __attribute__((visibility(value)))
+#else
+#define @MODULE_UPPER_NAME@_VISIBILITY(value)
+#endif
+
+#if !defined(@MODULE_UPPER_NAME@_HEADER_ONLY) && defined(_WIN32)
+#if defined(@MODULE_UPPER_NAME@_LIB_EXPORT)
+#define @MODULE_UPPER_NAME@_API __declspec(dllexport)
+#elif defined(@MODULE_UPPER_NAME@_SHARED)
+#define @MODULE_UPPER_NAME@_API __declspec(dllimport)
+#endif
+#elif defined(@MODULE_UPPER_NAME@_LIB_EXPORT) || defined(@MODULE_UPPER_NAME@_SHARED)
+#define @MODULE_UPPER_NAME@_API @MODULE_UPPER_NAME@_VISIBILITY("default")
+#endif
+#ifndef @MODULE_UPPER_NAME@_API
+#define @MODULE_UPPER_NAME@_API
+#endif
+
+// libc++ supports string_view in pre-c++17.
+#if @MODULE_UPPER_NAME@_HAS_INCLUDE(<string_view>) && \
+    (@MODULE_UPPER_NAME@_CPLUSPLUS >= 201703L || defined(_LIBCPP_VERSION))
+#include <string_view>
+#define @MODULE_UPPER_NAME@_USE_STRING_VIEW
+#elif @MODULE_UPPER_NAME@_HAS_INCLUDE("experimental/string_view") && \
+    @MODULE_UPPER_NAME@_CPLUSPLUS >= 201402L
+#include <experimental/string_view>
+#define @MODULE_UPPER_NAME@_USE_EXPERIMENTAL_STRING_VIEW
+#endif
+
+#ifndef @MODULE_UPPER_NAME@_UNICODE
+#define @MODULE_UPPER_NAME@_UNICODE !@MODULE_UPPER_NAME@_MSC_VERSION
+#endif
+
+#ifndef @MODULE_UPPER_NAME@_CONSTEVAL
+#if ((@MODULE_UPPER_NAME@_GCC_VERSION >= 1000 || @MODULE_UPPER_NAME@_CLANG_VERSION >= 1101) && \
+     (!defined(__apple_build_version__) ||                           \
+      __apple_build_version__ >= 14000029L) &&                       \
+     @MODULE_UPPER_NAME@_CPLUSPLUS >= 202002L) ||                                 \
+    (defined(__cpp_consteval) &&                                     \
+     (!@MODULE_UPPER_NAME@_MSC_VERSION || @MODULE_UPPER_NAME@_MSC_VERSION >= 1929))
+// consteval is broken in MSVC before VS2019 version 16.10 and Apple clang
+// before 14.
+#define @MODULE_UPPER_NAME@_CONSTEVAL consteval
+#define @MODULE_UPPER_NAME@_HAS_CONSTEVAL
+#else
+#define @MODULE_UPPER_NAME@_CONSTEVAL
+#endif
+#endif
+
+#ifndef @MODULE_UPPER_NAME@_USE_NONTYPE_TEMPLATE_ARGS
+#if defined(__cpp_nontype_template_args) &&                        \
+    ((@MODULE_UPPER_NAME@_GCC_VERSION >= 903 && @MODULE_UPPER_NAME@_CPLUSPLUS >= 201709L) || \
+     __cpp_nontype_template_args >= 201911L) &&                    \
+    !defined(__NVCOMPILER) && !defined(__LCC__)
+#define @MODULE_UPPER_NAME@_USE_NONTYPE_TEMPLATE_ARGS 1
+#else
+#define @MODULE_UPPER_NAME@_USE_NONTYPE_TEMPLATE_ARGS 0
+#endif
+#endif
+
+// GCC < 5 requires this-> in decltype
+#ifndef @MODULE_UPPER_NAME@_DECLTYPE_THIS
+#if @MODULE_UPPER_NAME@_GCC_VERSION && @MODULE_UPPER_NAME@_GCC_VERSION < 500
+#define @MODULE_UPPER_NAME@_DECLTYPE_THIS this->
+#else
+#define @MODULE_UPPER_NAME@_DECLTYPE_THIS
+#endif
+#endif
+
+// Enable minimal optimizations for more compact code in debug mode.
+@MODULE_UPPER_NAME@_GCC_PRAGMA("GCC push_options")
+#if !defined(__OPTIMIZE__) && !defined(__NVCOMPILER) && !defined(__LCC__) && \
+    !defined(__CUDACC__)
+@MODULE_UPPER_NAME@_GCC_PRAGMA("GCC optimize(\"Og\")")
+#endif

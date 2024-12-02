@@ -1,0 +1,44 @@
+#pragma once
+
+#define @MODULE_UPPER_NAME@_MAJOR_VERSION @PROJECT_VERSION_MAJOR@
+#define @MODULE_UPPER_NAME@_MINOR_VERSION @PROJECT_VERSION_MINOR@
+#define @MODULE_UPPER_NAME@_PATCH_VERSION @PROJECT_VERSION_PATCH@
+#define @MODULE_UPPER_NAME@_VERSION "@PROJECT_VERSION@"
+
+#if defined(__clang__) && !defined(__ibmxl__)
+#define @MODULE_UPPER_NAME@_CLANG_VERSION (__clang_major__ * 100 + __clang_minor__)
+#else
+#define @MODULE_UPPER_NAME@_CLANG_VERSION 0
+#endif
+
+#if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER) && \
+    !defined(__NVCOMPILER)
+#define @MODULE_UPPER_NAME@_GCC_VERSION (__GNUC__ * 100 + __GNUC_MINOR__)
+#else
+#define @MODULE_UPPER_NAME@_GCC_VERSION 0
+#endif
+
+#ifndef @MODULE_UPPER_NAME@_GCC_PRAGMA
+// Workaround _Pragma bug https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59884.
+#if @MODULE_UPPER_NAME@_GCC_VERSION >= 504
+#define @MODULE_UPPER_NAME@_GCC_PRAGMA(arg) _Pragma(arg)
+#else
+#define @MODULE_UPPER_NAME@_GCC_PRAGMA(arg)
+#endif
+#endif
+
+#ifdef __ICL
+#define @MODULE_UPPER_NAME@_ICC_VERSION __ICL
+#elif defined(__INTEL_COMPILER)
+#define @MODULE_UPPER_NAME@_ICC_VERSION __INTEL_COMPILER
+#else
+#define @MODULE_UPPER_NAME@_ICC_VERSION 0
+#endif
+
+#ifdef _MSC_VER
+#define @MODULE_UPPER_NAME@_MSC_VERSION _MSC_VER
+#define @MODULE_UPPER_NAME@_MSC_WARNING(...) __pragma(warning(__VA_ARGS__))
+#else
+#define @MODULE_UPPER_NAME@_MSC_VERSION 0
+#define @MODULE_UPPER_NAME@_MSC_WARNING(...)
+#endif
